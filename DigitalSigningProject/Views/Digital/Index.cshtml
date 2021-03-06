@@ -1,0 +1,120 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Sign Document and Save it</h1>
+<form action="api/signing/sign"
+      enctype="multipart/form-data" onsubmit="AJAXSubmit(this);return false;"
+      method="post">
+    <dl>
+        <dt>
+            <label for="FileUpload_FormFile">File</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_FormFile" type="file"
+                   name="xmlfile" required/>
+        </dd>
+        <dt>
+            <label for="FileUpload_key">RSA key to use</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_key" type="text"
+                   name="key" required/>
+        </dd>
+    </dl>
+
+    <input class="btn btn-dark" type="submit" value="Upload" />
+
+    <div style="margin-top:15px">
+        <output name="result">Result:</output>
+    </div>
+</form>
+
+<hr />
+<form action="api/signing/verifie"
+      enctype="multipart/form-data" onsubmit="AJAXVerifieSubmit(this);return false;"
+      method="post">
+    <dl>
+        <dt>
+            <label for="FileUpload_FormFile">Signed File</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_FormFile" type="file"
+                   name="verfiexmlfile" required/>
+        </dd>
+        <dt>
+            <label for="FileUpload_key">RSA key used</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_key" type="text"
+                   name="verfiekey" required/>
+        </dd>
+    </dl>
+
+    <input class="btn bg-success" type="submit" value="Verifie" />
+
+    <div style="margin-top:15px">
+        <output name="verifie"> Result: </output>
+    </div>
+</form>
+
+
+<script>
+    async function AJAXSubmit(oFormElement) {
+        var resultElement = oFormElement.elements.namedItem("result");
+        const formData = new FormData(oFormElement);
+
+        try {
+            const response = await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                response.blob().then(blob => {
+                    resultElement.value = 'Result: File has been signed';
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', 'file.xml');
+                    document.body.appendChild(link);
+                    link.click();
+                })
+
+            } else {
+                resultElement.value = "Error: " + error;
+            }
+
+        } catch (error) {
+            resultElement.value = "Error: " + error
+        }
+    }
+
+    async function AJAXVerifieSubmit(oFormElement) {
+
+        var verifieElement = oFormElement.elements.namedItem("verifie");
+        console.log(oFormElement.elements);
+        const formData = new FormData(oFormElement);
+
+        try {
+            const response = await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                response.text().then((text) => {
+
+                    verifieElement.value = "Result: " + text;
+                })
+            } else {
+                resultElement.value = "Error: " + error;
+            }
+
+
+        } catch (error) {
+            resultElement.value = "Error: " + error
+        }
+    }
+</script>
+

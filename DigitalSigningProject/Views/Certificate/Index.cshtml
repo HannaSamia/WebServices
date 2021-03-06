@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>This page is used to encrypt an xml element using the X.509 Certificate</h1>
+
+<form action="api/signing/encrypt/cert"
+      enctype="multipart/form-data" onsubmit="AJAXSubmit(this);return false;"
+      method="post">
+    <dl>
+        <dt>
+            <label for="FileUpload_FormFile">File</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_FormFile" type="file"
+                   name="xmlfile" required />
+        </dd>
+        <dt>
+            <label for="FileUpload_certificate">Certificate File</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_certificate" type="file"
+                   name="certificate" required />
+        </dd>
+        <dt>
+            <label for="FileUpload_key">Element Name</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_key" type="text"
+                   name="elementName" required />
+        </dd>
+    </dl>
+
+    <input class="btn btn-dark" type="submit" value="Encrypt" />
+
+    <div style="margin-top:15px">
+        <output name="encResult">Result:</output>
+    </div>
+</form>
+
+<hr />
+
+<h4 style="color:red">Sadly Asp.net doesn't have the ability to decrypt certificate encrypted element</h4>
+<h5>They need to be installed first on the machine. <a href="https://github.com/aspnet/DataProtection/issues/286#issuecomment-348599427">github post</a></h5>
+
+
+<script>
+    async function AJAXSubmit(oFormElement) {
+        var resultElement = oFormElement.elements.namedItem("encResult");
+        const formData = new FormData(oFormElement);
+
+        try {
+            const response = await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                response.blob().then(blob => {
+                    resultElement.value = 'Result: File element has been Encrypted';
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', 'file.xml');
+                    document.body.appendChild(link);
+                    link.click();
+                })
+
+            } else {
+                resultElement.value = "Error: " + error;
+            }
+
+        } catch (error) {
+            resultElement.value = "Error: " + error
+        }
+    }
+</script>
